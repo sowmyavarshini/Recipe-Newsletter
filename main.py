@@ -15,7 +15,7 @@ load_dotenv()
 
 my_email = os.getenv("EMAIL")
 password = os.getenv("PASSWORD")
-
+server_name = os.getenv("SERVER_NAME")
 MY_EMAIL = os.environ.get("EMAIL", my_email)
 PASSWORD = os.environ.get("PASSWORD", password)
 
@@ -30,7 +30,8 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = MY_EMAIL
 app.config['MAIL_PASSWORD'] = PASSWORD
 app.config['MAIL_USE_TLS'] = True
-app.config['SERVER_NAME'] = "localhost:5000"
+app.config['SERVER_NAME'] = os.environ.get("SERVER_NAME", server_name)
+app.config['PREFERRED_URL_SCHEME'] = os.environ.get("PREFERRED_URL_SCHEME", 'http')
 mail = Mail(app)
 db = SQLAlchemy(app)
 
