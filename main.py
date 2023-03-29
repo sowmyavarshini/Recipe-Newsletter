@@ -40,7 +40,7 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True)
 
 
-db.create_all()
+# db.create_all()
 
 
 @app.route('/', methods=['GET', 'POST'])
