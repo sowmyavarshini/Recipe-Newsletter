@@ -116,7 +116,7 @@ def recipes():
 
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(recipes, 'interval', minutes=2)
+sched.add_job(recipes, 'interval', hours=2)
 sched.start()
 
 
