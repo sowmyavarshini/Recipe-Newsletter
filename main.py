@@ -116,6 +116,6 @@ schedule = APScheduler()
 
 
 if __name__ == "__main__":
-    schedule.add_job(id='Job1', func=recipes, trigger='cron', day_of_week='thu', hour=15, minute=40)
+    schedule.add_job(id='Job1', func=recipes, trigger='cron', day_of_week='thu', hour=4, minute=10)
     schedule.start()
     app.run(debug=True, use_reloader=False)
