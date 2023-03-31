@@ -1,13 +1,13 @@
 import requests
+import datetime as dt
 from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 import urllib
 from sqlalchemy.exc import IntegrityError
-import tzlocal
+import atexit
 from dotenv import load_dotenv
 from flask_mail import Mail, Message
 import os
-from flask_apscheduler import APScheduler
 from threading import Thread
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -85,37 +85,41 @@ def send_email(subject, sender, recipients, html_body):
 
 
 def recipes():
-    response = requests.get('http://www.themealdb.com/api/json/v1/1/random.php')
-    response.raise_for_status()
-    food_data = response.json()
-    f = food_data['meals'][0]
-    img = urllib.request.urlretrieve(f['strMealThumb'], 'img.jpg')
-    dic = {}
-    for i in range(1, 21):
-        if f[f'strIngredient{i}']:
-            dic.update({f[f'strIngredient{i}']: f[f'strMeasure{i}']})
-    dic1 = "\n".join(f"{key}: {value}" for key, value in dic.items())
-    with app.app_context(), app.test_request_context():
-        hyperlink_format = url_for("delete_user", _external=True)
-    users = User.query.all()
-    html_body = '<html><body><pre><h2>{}</h2>' \
-                '<h3>Ingredients:</h3>{}' \
-                '<h3>Instructions:</h3>{}<br><br>' \
-                '<a href="{}">Unsubscribe</a></pre></body></html>'.format(f['strMeal'], dic1,
-                                                                          f['strInstructions'],
-                                                                          hyperlink_format)
-    for user in users:
-        send_email('New Recipe!',
-                   sender=MY_EMAIL,
-                   recipients=[user.email],
-                   html_body=html_body
-                   )
+    now = dt.datetime.now()
+    day_of_week = now.weekday()
+    if day_of_week == 3:
+        response = requests.get('http://www.themealdb.com/api/json/v1/1/random.php')
+        response.raise_for_status()
+        food_data = response.json()
+        f = food_data['meals'][0]
+        img = urllib.request.urlretrieve(f['strMealThumb'], 'img.jpg')
+        dic = {}
+        for i in range(1, 21):
+            if f[f'strIngredient{i}']:
+                dic.update({f[f'strIngredient{i}']: f[f'strMeasure{i}']})
+        dic1 = "\n".join(f"{key}: {value}" for key, value in dic.items())
+        with app.app_context(), app.test_request_context():
+            hyperlink_format = url_for("delete_user", _external=True)
+        users = User.query.all()
+        html_body = '<html><body><pre><h2>{}</h2>' \
+                    '<h3>Ingredients:</h3>{}' \
+                    '<h3>Instructions:</h3>{}<br><br>' \
+                    '<a href="{}">Unsubscribe</a></pre></body></html>'.format(f['strMeal'], dic1,
+                                                                              f['strInstructions'],
+                                                                              hyperlink_format)
+        for user in users:
+            send_email('New Recipe!',
+                       sender=MY_EMAIL,
+                       recipients=[user.email],
+                       html_body=html_body
+                       )
 
 
-schedule = APScheduler()
+sched = BackgroundScheduler(daemon=True)
+sched.add_job(recipes, 'interval', minutes=2)
+sched.start()
 
+atexit.register(lambda: sched.shutdown())
 
 if __name__ == "__main__":
-    schedule.add_job(id='Job1', func=recipes, trigger='cron', day_of_week='thu', hour=17, minute=25)
-    schedule.start()
-    app.run(debug=True, use_reloader=False)
+    app.run()
