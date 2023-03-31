@@ -87,7 +87,7 @@ def send_email(subject, sender, recipients, html_body):
 def recipes():
     now = dt.datetime.now()
     day_of_week = now.weekday()
-    if day_of_week == 3:
+    if day_of_week == 4:
         response = requests.get('http://www.themealdb.com/api/json/v1/1/random.php')
         response.raise_for_status()
         food_data = response.json()
@@ -122,4 +122,4 @@ sched.start()
 atexit.register(lambda: sched.shutdown())
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, use_reloader=False)
