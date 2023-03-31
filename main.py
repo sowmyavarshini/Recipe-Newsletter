@@ -71,17 +71,13 @@ def delete_user():
     return render_template("unsubscribe.html")
 
 
-def send_async_email(app, msg):
-    with app.app_context():
-        mail.send(msg)
-
-
 def send_email(subject, sender, recipients, html_body):
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.html = html_body
     with app.open_resource("img.jpg") as fp:
         msg.attach("img.jpg", "image/jpeg", fp.read())
-    Thread(target=send_async_email, args=(app, msg)).start()
+    with app.app_context():
+        mail.send(msg)
 
 
 def recipes():
@@ -122,4 +118,4 @@ sched.start()
 atexit.register(lambda: sched.shutdown())
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run()
