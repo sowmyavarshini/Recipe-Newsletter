@@ -118,7 +118,7 @@ if not app.debug or is_running_from_reloader():
     sched.add_job(recipes, 'interval', minutes=2)
     sched.start()
 
-atexit.register(lambda: sched.shutdown())
+
 
 if __name__ == "__main__":
     app.run(debug=app.debug)
