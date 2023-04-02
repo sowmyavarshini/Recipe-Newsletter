@@ -8,8 +8,9 @@ import atexit
 from dotenv import load_dotenv
 from flask_mail import Mail, Message
 import os
-from threading import Thread
+from werkzeug.serving import is_running_from_reloader
 from apscheduler.schedulers.background import BackgroundScheduler
+
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ app.config['MAIL_PASSWORD'] = PASSWORD
 app.config['MAIL_USE_TLS'] = True
 app.config['SERVER_NAME'] = os.environ.get("SERVER_NAME", server_name)
 app.config['PREFERRED_URL_SCHEME'] = os.environ.get("PREFERRED_URL_SCHEME", 'http')
+app.config['DEBUG'] = True
 mail = Mail(app)
 db = SQLAlchemy(app)
 
@@ -83,7 +85,7 @@ def send_email(subject, sender, recipients, html_body):
 def recipes():
     now = dt.datetime.now()
     day_of_week = now.weekday()
-    if day_of_week == 4:
+    if day_of_week == 5:
         response = requests.get('http://www.themealdb.com/api/json/v1/1/random.php')
         response.raise_for_status()
         food_data = response.json()
@@ -111,11 +113,12 @@ def recipes():
                        )
 
 
-sched = BackgroundScheduler(daemon=True)
-sched.add_job(recipes, 'interval', minutes=2)
-sched.start()
+if not app.debug or is_running_from_reloader():
+    sched = BackgroundScheduler(daemon=True)
+    sched.add_job(recipes, 'interval', minutes=2)
+    sched.start()
 
 atexit.register(lambda: sched.shutdown())
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=app.debug)
