@@ -85,7 +85,7 @@ def send_email(subject, sender, recipients, html_body):
 def recipes():
     now = dt.datetime.now()
     day_of_week = now.weekday()
-    if day_of_week == 5:
+    if day_of_week == 1:
         response = requests.get('http://www.themealdb.com/api/json/v1/1/random.php')
         response.raise_for_status()
         food_data = response.json()
@@ -113,12 +113,14 @@ def recipes():
                        )
 
 
-if not app.debug or is_running_from_reloader():
-    sched = BackgroundScheduler(daemon=True)
+sched = BackgroundScheduler()
+
+
+@app.before_first_request
+def initialize():
     sched.add_job(recipes, 'interval', minutes=2)
     sched.start()
 
 
-
 if __name__ == "__main__":
-    app.run(debug=app.debug)
+    app.run()
