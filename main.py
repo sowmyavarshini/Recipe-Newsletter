@@ -114,13 +114,10 @@ def recipes():
 
 
 sched = BackgroundScheduler()
-
-
-def initialize():
-    sched.add_job(recipes, 'interval', minutes=2)
-    sched.start()
+sched.add_job(recipes, 'interval', minutes=2)
+sched.start()
 
 
 if __name__ == "__main__":
-    app.run()
-    initialize()
+    app.run(use_reloader=False)
+
