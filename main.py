@@ -113,11 +113,11 @@ def recipes():
                        )
 
 
-sched = BackgroundScheduler()
+sched = BackgroundScheduler(daemon=True)
 sched.add_job(recipes, 'interval', minutes=2)
 sched.start()
 
-
+atexit.register(lambda: sched.shutdown())
 if __name__ == "__main__":
-    app.run(use_reloader=False)
+    app.run(debug=False)
 
